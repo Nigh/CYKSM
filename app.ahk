@@ -9,242 +9,192 @@ SetWorkingDir(A_ScriptDir)
 
 #include prod.ahk
 
-; if you need admin privilege, enable it.
-if(0)
-{
-	UAC()
-}
 #include update.ahk
 setTray()
 OnExit(trueExit)
 
-; ===============================================================
-; ===============================================================
-; your code below
-DirCreate(A_Temp "\CYKSM\models_realesrgan")
-FileInstall(".\realesrgan-ncnn-vulkan.exe", A_Temp "\CYKSM\rn-vulkan.exe", 1)
-FileInstall(".\vcomp140.dll", A_Temp "\CYKSM\vcomp140.dll", 1)
-FileInstall(".\vcomp140d.dll", A_Temp "\CYKSM\vcomp140d.dll", 1)
-FileInstall(".\models_realesrgan\realesrgan-x4plus-anime.bin", A_Temp "\CYKSM\models_realesrgan\realesrgan-x4plus-anime.bin", 1)
-FileInstall(".\models_realesrgan\realesrgan-x4plus-anime.param", A_Temp "\CYKSM\models_realesrgan\realesrgan-x4plus-anime.param", 1)
+#Include webview\WebViewToo.ahk
 
-MonitorGet(0, &Left, &Top, &Right, &Bottom)
-DPIScale := A_ScreenDPI / 96
-DPIScaled(n) {
-	return Round(n * DPIScale)
-}
-DPIScaledFont(n) {
-	return Round(n * (DPIScale ** 0.5))
-}
-Screen_Height:=Bottom-Top
-Screen_Width:=Right-Left
-gui_margin := DPIScaled(10)
+DirCreate(A_Temp "\CYKSM\models_realesrgan")
+FileInstall(".\bin\realesrgan-ncnn-vulkan.exe", A_Temp "\CYKSM\rn-vulkan.exe", 1)
+FileInstall(".\bin\vcomp140.dll", A_Temp "\CYKSM\vcomp140.dll", 1)
+FileInstall(".\bin\vcomp140d.dll", A_Temp "\CYKSM\vcomp140d.dll", 1)
+FileInstall(".\bin\models_realesrgan\realesrgan-x4plus-anime.bin", A_Temp "\CYKSM\models_realesrgan\realesrgan-x4plus-anime.bin", 1)
+FileInstall(".\bin\models_realesrgan\realesrgan-x4plus-anime.param", A_Temp "\CYKSM\models_realesrgan\realesrgan-x4plus-anime.param", 1)
 
 #include Gdip_All.ahk
 pGDI := Gdip_Startup()
 
-Class anime4x
-{
-	static state := 0
-	static afterfunc := ""
-	static callbackfunc := ""
-	static inputfile := ""
-	static outputfile := ""
-	static input_bitmap := ""
-	static output_bitmap := ""
+#include anime4x.ahk
 
-	static inputpath(inputfile) {
-		this.inputfile := inputfile
-		this.input_bitmap:=Gdip_CreateBitmapFromFile(this.inputfile)
-		Return this.input_bitmap
-	}
-	static outputpath(outputfile) {
-		this.outputfile := outputfile
-	}
+; mygui:=Gui("-AlwaysOnTop -Owner -DpiScale")
+; myGui.OnEvent("Close", myGui_Close)
+; myGui.OnEvent("DropFiles", mygui_DropFiles)
+; mygui.SetFont("s32 Q5", "Meiryo")
+; mygui.Add("Text","x20 y10 Section","次元克赛马")
+; mygui.SetFont("s10 Q5", "Meiryo")
+; mygui.Add("Text","x+20 y+-52","v" . version)
+; mygui.Add("Link","xp y+0",'bilibili: <a href="https://space.bilibili.com/895523">TecNico</a>')
+; mygui.Add("Link","xp y+0",'GitHub: <a href="https://github.com/Nigh">xianii</a>')
+; mygui.Add("Text","x50 yp","二次元反向马赛克工具")
 
+; mygui.SetFont("s10 Q5 Bold", "Meiryo")
+; ori_label:=mygui.Add("Text","x20 y+10 w400 h20 center", "原图")
+; new_label:=mygui.Add("Text","x+10 yp w400 h20 center", "转换后")
+; ori_pic:=mygui.Add("Picture", "x20 y+0 w400 h400 0xE 0x200 0x800000 -0x40")
+; new_pic:=mygui.Add("Picture", "x+10 w400 h400 0xE 0x200 0x800000 -0x40")
+; ori_size:=mygui.Add("Text","x20 y+0 w400 h20 center", "NULL")
+; new_size:=mygui.Add("Text","x+10 yp w400 h20 center", "NULL")
 
-	static after(func) {
-		this.afterfunc := func
-	}
+; runBtn:=mygui.Add("Button", "x20 y+10 w810 r3 Disabled", "转换")
+; runBtn.OnEvent("Click", generate)
 
-	static callback(func) {
-		this.callbackfunc := func
-	}
+; generate(btn, *) {
+; 	btn.Enabled:=false
+; 	btn.Text := "转换中"
+; 	ends(){
+; 		global new_pic, ori_pic, new_size
+; 		btn.Text:="转换"
+; 		Gdip_GetImageDimensions(anime4x.output_bitmap, &W, &H)
+; 		new_size.Text := W "x" H
+; 		mygui_ctrl_show_pic(new_pic, anime4x.output_bitmap)
+; 		btn.gui.Opt("+OwnDialogs")
+; 		MsgBox("转换完成，已保存为`n" anime4x.outputfile)
+; 	}
+; 	proc() {
+; 		if(StrLen(btn.Text)<19) {
+; 			btn.Text:="< " btn.Text " >"
+; 		} else {
+; 			btn.Text:="转换中"
+; 		}
+; 	}
+; 	anime4x.callback(proc)
+; 	anime4x.after(ends)
+; 	anime4x.go()
+; }
 
-	static go() {
-		if not FileExist(this.inputfile) {
-			MsgBox "未找到输入图片，请重新拖入"
-			return
-		}
-		if FileExist(this.outputfile) {
-			FileDelete this.outputfile
-		}
-		this.state := 1
-		SetTimer(this.callbackfunc, 150)
-		RunWait(A_Temp '\CYKSM\rn-vulkan.exe -i "' this.inputfile '" -o "' this.outputfile '" -n realesrgan-x4plus-anime -m models_realesrgan',,"Hide")
-		SetTimer(this.callbackfunc, 0)
-		this.state := 0
-		this.output_bitmap:=Gdip_CreateBitmapFromFile(this.outputfile)
-		SetTimer(this.afterfunc, -1)
-	}
+WebViewSettings := {}
+if (A_IsCompiled) {
+	WebViewCtrl.CreateFileFromResource("64bit\WebView2Loader.dll", WebViewCtrl.TempDir)
+    WebViewSettings := {DllPath: WebViewCtrl.TempDir "\64bit\WebView2Loader.dll"}
 }
 
+MyGui := WebViewGui("+Resize +MinSize800x600",,, WebViewSettings)
+MyGui.OnEvent("Close", mygui_Close)
 
-mygui:=Gui("-AlwaysOnTop -Owner -DpiScale")
-myGui.OnEvent("Close", myGui_Close)
-myGui.OnEvent("DropFiles", mygui_DropFiles)
-mygui.SetFont("s32 Q5", "Meiryo")
-mygui.Add("Text","x20 y10 Section","次元克赛马")
-mygui.SetFont("s10 Q5", "Meiryo")
-mygui.Add("Text","x+20 y+-52","v" . version)
-mygui.Add("Link","xp y+0",'bilibili: <a href="https://space.bilibili.com/895523">TecNico</a>')
-mygui.Add("Link","xp y+0",'GitHub: <a href="https://github.com/Nigh">xianii</a>')
-mygui.Add("Text","x50 yp","二次元反向马赛克工具")
+MyGui.AddCallbackToScript("Visit", WebviewVisit)
+; MyGui.AddCallbackToScript("Msg", WebviewMsg)
+; MyGui.AddCallbackToScript("DragStart", dragStart)
 
-mygui.SetFont("s10 Q5 Bold", "Meiryo")
-ori_label:=mygui.Add("Text","x20 y+10 w400 h20 center", "原图")
-new_label:=mygui.Add("Text","x+10 yp w400 h20 center", "转换后")
-ori_pic:=mygui.Add("Picture", "x20 y+0 w400 h400 0xE 0x200 0x800000 -0x40")
-new_pic:=mygui.Add("Picture", "x+10 w400 h400 0xE 0x200 0x800000 -0x40")
-ori_size:=mygui.Add("Text","x20 y+0 w400 h20 center", "NULL")
-new_size:=mygui.Add("Text","x+10 yp w400 h20 center", "NULL")
-
-runBtn:=mygui.Add("Button", "x20 y+10 w810 r3 Disabled", "转换")
-runBtn.OnEvent("Click", generate)
-
-generate(btn, *) {
-	btn.Enabled:=false
-	btn.Text := "转换中"
-	ends(){
-		global new_pic, ori_pic, new_size
-		btn.Text:="转换"
-		Gdip_GetImageDimensions(anime4x.output_bitmap, &W, &H)
-		new_size.Text := W "x" H
-		mygui_ctrl_show_pic(new_pic, anime4x.output_bitmap)
-		btn.gui.Opt("+OwnDialogs")
-		MsgBox("转换完成，已保存为`n" anime4x.outputfile)
-	}
-	proc() {
-		if(StrLen(btn.Text)<19) {
-			btn.Text:="< " btn.Text " >"
-		} else {
-			btn.Text:="转换中"
-		}
-	}
-	anime4x.callback(proc)
-	anime4x.after(ends)
-	anime4x.go()
+if(A_IsCompiled) {
+	MyGui.Navigate("index.html")
+} else {
+	MyGui.Navigate("http://localhost:5173")
+	MyGui.Debug()
 }
-
-mygui.Show("AutoSize")
-
+MyGui.Show("w820 h600")
 Return
 
-mygui_set_pic_size(picW, picH)
-{
-	global Screen_Width, Screen_Height, ori_pic, new_pic, ori_label, new_label, ori_size, new_size, runBtn, gui_margin
-
-	ratio := picW / picH
-
-	minW:=DPIScaled(400)
-	minH:=DPIScaled(400)
-	maxW:=0.4*Screen_Width
-	maxH:=0.6*Screen_Height
-
-	percent := 1
-	percent := Min(percent, maxH / picH)
-	percent := Min(percent, maxW / picW)
-	percent *= Min(maxW / (picH * percent * ratio), 1)
-
-	ctrlH := Round(picH * percent) + 0
-	ctrlW := Round(ctrlH * ratio) + 0
-
-	ori_label.Move(gui_margin, , ctrlW, 20)
-	new_label.Move(gui_margin+gui_margin+ctrlW, , ctrlW, 20)
-	ori_pic.Move(gui_margin, , ctrlW, ctrlH)
-	new_pic.Move(gui_margin+gui_margin+ctrlW, , ctrlW, ctrlH)
-	ori_pic.GetPos(,&y)
-	ori_size.Move(gui_margin, y+ctrlH, ctrlW, 20)
-	new_size.Move(gui_margin+gui_margin+ctrlW, y+ctrlH, ctrlW, 20)
-
-	runBtn.Move(gui_margin, y+ctrlH+gui_margin+20, 2*ctrlW+gui_margin)
-	new_pic.gui.Show("AutoSize xCenter yCenter")
-	ori_label.Redraw()
-	new_label.Redraw()
-	new_pic.Redraw()
-	ori_pic.Redraw()
-	ori_size.Redraw()
-	new_size.Redraw()
-	Return percent
+WebviewVisit(webview, msg) {
+	Run(msg)
 }
 
-mygui_ctrl_show_pic(GuiCtrlObj, pBitmap)
-{
-	Gdip_GetImageDimensions(pBitmap, &W, &H)
-	percent := mygui_set_pic_size(W, H)
-	picW:=W*percent
-	picH:=H*percent
-	; GuiCtrlObj.GetPos(,, &ctrlW, &ctrlH)
-	pBitmapShow := Gdip_CreateBitmap(picW, picH)
-	G := Gdip_GraphicsFromImage(pBitmapShow)
-	Gdip_SetSmoothingMode(G, 4)
-	Gdip_SetInterpolationMode(G, 7)
-	Gdip_DrawImage(G, pBitmap, 0, 0, picW, picH)
-	hBitmapShow := Gdip_CreateHBITMAPFromBitmap(pBitmapShow)
-	SetImage(GuiCtrlObj.hwnd, hBitmapShow)
-	Gdip_DeleteGraphics(G), Gdip_DisposeImage(pBitmapShow), DeleteObject(hBitmapShow)
-	Gdip_DisposeImage(pBitmap)
-}
+; mygui_set_pic_size(picW, picH)
+; {
+; 	global Screen_Width, Screen_Height, ori_pic, new_pic, ori_label, new_label, ori_size, new_size, runBtn, gui_margin
 
-mygui_DropFiles(GuiObj, GuiCtrlObj, FileArray, X, Y) {
-	global ori_pic, new_pic, ori_size, new_size, runBtn
-	GuiObj.Opt("+OwnDialogs")
-	if(FileArray.Length>1) {
-		MsgBox "一次只能拖进一个文件哦"
-		Return
-	}
-	SplitPath(FileArray[1],,,&Ext)
+; 	ratio := picW / picH
+
+; 	minW:=DPIScaled(400)
+; 	minH:=DPIScaled(400)
+; 	maxW:=0.4*Screen_Width
+; 	maxH:=0.6*Screen_Height
+
+; 	percent := 1
+; 	percent := Min(percent, maxH / picH)
+; 	percent := Min(percent, maxW / picW)
+; 	percent *= Min(maxW / (picH * percent * ratio), 1)
+
+; 	ctrlH := Round(picH * percent) + 0
+; 	ctrlW := Round(ctrlH * ratio) + 0
+
+; 	ori_label.Move(gui_margin, , ctrlW, 20)
+; 	new_label.Move(gui_margin+gui_margin+ctrlW, , ctrlW, 20)
+; 	ori_pic.Move(gui_margin, , ctrlW, ctrlH)
+; 	new_pic.Move(gui_margin+gui_margin+ctrlW, , ctrlW, ctrlH)
+; 	ori_pic.GetPos(,&y)
+; 	ori_size.Move(gui_margin, y+ctrlH, ctrlW, 20)
+; 	new_size.Move(gui_margin+gui_margin+ctrlW, y+ctrlH, ctrlW, 20)
+
+; 	runBtn.Move(gui_margin, y+ctrlH+gui_margin+20, 2*ctrlW+gui_margin)
+; 	new_pic.gui.Show("AutoSize xCenter yCenter")
+; 	ori_label.Redraw()
+; 	new_label.Redraw()
+; 	new_pic.Redraw()
+; 	ori_pic.Redraw()
+; 	ori_size.Redraw()
+; 	new_size.Redraw()
+; 	Return percent
+; }
+
+; mygui_ctrl_show_pic(GuiCtrlObj, pBitmap)
+; {
+; 	Gdip_GetImageDimensions(pBitmap, &W, &H)
+; 	percent := mygui_set_pic_size(W, H)
+; 	picW:=W*percent
+; 	picH:=H*percent
+; 	; GuiCtrlObj.GetPos(,, &ctrlW, &ctrlH)
+; 	pBitmapShow := Gdip_CreateBitmap(picW, picH)
+; 	G := Gdip_GraphicsFromImage(pBitmapShow)
+; 	Gdip_SetSmoothingMode(G, 4)
+; 	Gdip_SetInterpolationMode(G, 7)
+; 	Gdip_DrawImage(G, pBitmap, 0, 0, picW, picH)
+; 	hBitmapShow := Gdip_CreateHBITMAPFromBitmap(pBitmapShow)
+; 	SetImage(GuiCtrlObj.hwnd, hBitmapShow)
+; 	Gdip_DeleteGraphics(G), Gdip_DisposeImage(pBitmapShow), DeleteObject(hBitmapShow)
+; 	Gdip_DisposeImage(pBitmap)
+; }
+
+; mygui_DropFiles(GuiObj, GuiCtrlObj, FileArray, X, Y) {
+; 	global ori_pic, new_pic, ori_size, new_size, runBtn
+; 	GuiObj.Opt("+OwnDialogs")
+; 	if(FileArray.Length>1) {
+; 		MsgBox "一次只能拖进一个文件哦"
+; 		Return
+; 	}
+; 	SplitPath(FileArray[1],,,&Ext)
 	
-	if(anime4x.inputpath(FileArray[1])<=0||!RegExMatch(Ext, "i)(jpg|jpeg|png|jfif)$")) {
-		MsgBox "无效的图片文件"
-	} else {
-		runBtn.Enabled:=True
-		Gdip_GetImageDimensions(anime4x.input_bitmap, &W, &H)
-		mygui_ctrl_show_pic(ori_pic ,anime4x.input_bitmap)
-		ori_size.Text := W "x" H
-		new_size.Text := "NULL"
+; 	if(anime4x.inputpath(FileArray[1])<=0||!RegExMatch(Ext, "i)(jpg|jpeg|png|jfif)$")) {
+; 		MsgBox "无效的图片文件"
+; 	} else {
+; 		runBtn.Enabled:=True
+; 		Gdip_GetImageDimensions(anime4x.input_bitmap, &W, &H)
+; 		mygui_ctrl_show_pic(ori_pic ,anime4x.input_bitmap)
+; 		ori_size.Text := W "x" H
+; 		new_size.Text := "NULL"
 		
-		SetImage(new_pic.hwnd, 0)
+; 		SetImage(new_pic.hwnd, 0)
 		
-		SplitPath(FileArray[1],,,,&name)
-		anime4x.outputpath(A_ScriptDir "\" name "_4x.png")
-	}
-}
-mygui_Close(thisGui) {
+; 		SplitPath(FileArray[1],,,,&name)
+; 		anime4x.outputpath(A_ScriptDir "\" name "_4x.png")
+; 	}
+; }
+
+mygui_Close(*) {
 	trueExit(0, 0)
 }
 trueExit(ExitReason, ExitCode){
-	global pGDI
-	Gdip_Shutdown(pGDI)
 	ExitApp
 }
 
 ; ===============================================================
 ; ===============================================================
 
-UAC()
-{
-	full_command_line := DllCall("GetCommandLine", "str")
-
-	if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)")) {
-		try
-		{
-			if A_IsCompiled
-				Run '*RunAs "' A_ScriptFullPath '" /restart'
-			else
-				Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
-		}
-		ExitApp
-	}
-}
 #include tray.ahk
+
+#Include *i resource.ahk
+
+;@Ahk2Exe-IgnoreBegin
+; For dev
+F6::ExitApp(5173)
+;@Ahk2Exe-IgnoreEnd

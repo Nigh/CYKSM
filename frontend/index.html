@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="assets/vite.svg" />
+		<link rel="stylesheet" href="./src/app.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>ahk-webview-template</title>
+		<script>
+			window.chrome.webview.addEventListener("message", onAhkMsg)
+			const cmdFromAhk = {
+				DragWindowMouseUp: () => {
+					alert("DragWindowMouseUp")
+				},
+			}
+			function onAhkMsg(Msg) {
+				console.log(Msg)
+				if (
+					Msg.data &&
+					typeof Msg.data == "object" &&
+					Msg.data.type.length > 0
+				) {
+					switch (Msg.data.type) {
+						case "cmd":
+							if (cmdFromAhk[Msg.data.content])
+								cmdFromAhk[Msg.data.content]()
+							break
+					}
+				}
+			}
+		</script>
+	</head>
+	<body class="overflow-hidden h-screen w-screen relative select-none">
+		<div
+			id="pages"
+			class="flex h-full w-full transition-transform duration-500 ease-in-out"
+		>
+			<section
+				class="w-full h-full flex flex-col justify-center items-center"
+			>
+				<load src="./components/nav.html" />
+				<div
+					class="flex flex-col justify-center w-full h-full select-none"
+				>
+					<div class="flex flex-col h-full items-center pb-4">
+						<load src="./components/main.html" />
+						<div class="divider"></div>
+						<load src="./components/user_input.html" />
+					</div>
+				</div>
+			</section>
+		</div>
+	</body>
+</html>

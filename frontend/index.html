@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 	<head>
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="assets/vite.svg" />
 		<link rel="stylesheet" href="./src/app.css" />
+		<link rel="stylesheet" href="./src/style.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>ahk-webview-template</title>
 		<script>
@@ -30,25 +31,20 @@
 			}
 		</script>
 	</head>
-	<body class="overflow-hidden h-screen w-screen relative select-none">
+	<body
+		class="overflow-hidden h-screen w-screen relative select-none flex-1 min-h-0"
+	>
 		<div
 			id="pages"
-			class="flex h-full w-full transition-transform duration-500 ease-in-out"
+			class="flex flex-col h-full w-full transition-transform duration-500 ease-in-out"
 		>
-			<section
-				class="w-full h-full flex flex-col justify-center items-center"
-			>
-				<load src="./components/nav.html" />
-				<div
-					class="flex flex-col justify-center w-full h-full select-none"
-				>
-					<div class="flex flex-col h-full items-center pb-4">
-						<load src="./components/main.html" />
-						<div class="divider"></div>
-						<load src="./components/user_input.html" />
-					</div>
-				</div>
-			</section>
+			<load src="./components/nav.html" />
+			<load src="./components/main.html" />
+			<div class="divider"></div>
+			<load src="./components/user_input.html" />
 		</div>
+		<script type="module">
+			import "./src/app.js"
+		</script>
 	</body>
 </html>

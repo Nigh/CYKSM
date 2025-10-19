@@ -1,7 +1,7 @@
-<div class="flex flex-row h-full px-4 pt-4 w-full">
+<div class="flex-1 min-h-0 flex flex-row h-full px-4 pt-4 w-full">
 	<div
 		id="p-input"
-		class="grow h-full border-2 p-4 flex flex-1 items-center justify-center flex-col text-center"
+		class="flex-1 min-h-0 h-full border-2 rounded-md p-4 flex items-center justify-center flex-col text-center"
 	>
 		<input
 			id="file-picker"
@@ -15,8 +15,12 @@
 		>
 			<load src="components/icon_upload.html" />
 			<div>
-				Drop an image here or
-				<button id="browse-btn" class="btn btn-accent btn-xs">browse</button>
+				<span data-i18n="drophint"></span>
+				<button
+					id="browse-btn"
+					class="btn btn-accent btn-xs"
+					data-i18n="drophintbtn"
+				></button>
 			</div>
 		</div>
 		<img
@@ -27,17 +31,17 @@
 				max-width: 100%;
 				max-height: 100%;
 				display: none;
-				object-fit: contain;
+				object-fit: scale-down;
 			"
 		/>
 	</div>
 	<div class="flex-none divider divider-horizontal"></div>
 	<div
 		id="p-output"
-		class="grow h-full border-2 p-4 flex flex-1 items-center justify-center flex-col text-center"
+		class="flex-1 min-h-0 h-full border-2 rounded-md p-4 flex items-center justify-center flex-col text-center"
 	>
 		<!-- output preview image -->
-		 
+
 		<div
 			id="output-hint"
 			class="w-full h-full flex flex-col items-center justify-center gap-2"
@@ -52,7 +56,7 @@
 				max-width: 100%;
 				max-height: 100%;
 				display: none;
-				object-fit: contain;
+				object-fit: scale-down;
 			"
 		/>
 	</div>

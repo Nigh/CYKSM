@@ -1,0 +1,12 @@
+:lang(en) .text-title {
+	font-size: 4.5rem;
+	margin-bottom: -1rem;
+}
+:lang(zh) .text-title {
+	font-size: 4rem;
+	margin-bottom: -0.5rem;
+}
+:lang(ja) .text-title {
+	font-size: 3.5rem;
+	margin-bottom: -0.5rem;
+}

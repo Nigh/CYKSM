@@ -2,8 +2,12 @@
 import { defineConfig } from "vite"
 import tailwindcss from "@tailwindcss/vite"
 import injectHTML from "vite-plugin-html-inject"
+const appVersion = JSON.stringify(process.env.npm_package_version)
 
 export default defineConfig({
+	define: {
+		"import.meta.env.VITE_APP_VERSION": appVersion,
+	},
 	root: "frontend",
 	base: "./",
 	plugins: [tailwindcss(), injectHTML()],

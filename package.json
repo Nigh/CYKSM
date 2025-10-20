@@ -1,8 +1,8 @@
 {
-  "name": "ahk-webview-template",
+  "name": "cyksm",
   "private": true,
-  "version": "1.0.0",
-  "description": "A vite+tailwindcss webview template for AHK",
+  "version": "2.0.0",
+  "description": "A super resolution tool for anime style pictures",
   "type": "module",
   "scripts": {
     "dev:ahk": "ahk64 run app.ahk",

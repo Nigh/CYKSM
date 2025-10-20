@@ -6,7 +6,7 @@
 		<input
 			id="file-picker"
 			type="file"
-			accept="image/*"
+			accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
 			style="display: none"
 		/>
 		<div
@@ -119,10 +119,18 @@
 		})
 
 		function handleFiles(files) {
-			const file = Array.from(files).find(
-				(f) => f.type && f.type.startsWith("image/")
+			const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp"]
+
+			const file = Array.from(files).find((f) =>
+				ALLOWED_MIMES.includes(f.type)
 			)
-			if (!file) return
+			if (!file) {
+				// showMessage(
+				// 	"File rejected: Please select a JPEG, PNG, or WebP image.",
+				// 	"error"
+				// )
+				return
+			}
 			const reader = new FileReader()
 			reader.onload = function (ev) {
 				preview.src = ev.target.result
@@ -130,7 +138,7 @@
 				dropHint.style.display = "none"
 			}
 			reader.readAsDataURL(file)
-			setOutputImage(file)
+			// setOutputImage(file)
 		}
 
 		// Sets an image on a target div's preview <img> by id.
